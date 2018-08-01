@@ -1,0 +1,220 @@
+---
+title: "Shiny"
+author: "Г. Мороз"
+date: "2 августа 2018"
+output: 
+  html_document:
+    toc: true
+    toc_position: right
+    toc_depth: 2
+    toc_float: yes
+    smooth_scroll: false
+    number_sections: true
+    self_contained: yes
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+```{r}
+library(shiny)
+library(tidyverse)
+```
+
+# Полезные ссылки
+
+* [все материалы лекции](https://github.com/agricolamz/2018.08.02_ANDAN_Shiny)
+* [Shiny Gallery](https://shiny.rstudio.com/gallery/)
+* [Shiny Articles](https://shiny.rstudio.com/articles/)
+* [Shiny Cheat Sheet](https://github.com/rstudio/cheatsheets/raw/master/shiny.pdf)
+
+# Как запускать шайни?
+
+```{r}
+ui <- fluidPage(
+  sliderInput("user_bins",
+              NULL,
+              min = 1,
+              max = 50,
+              value = 30),
+  plotOutput("our_plot")
+)
+
+server <- function(input, output) {
+  output$our_plot <- renderPlot({
+    diamonds %>% 
+      ggplot(aes(price))+
+      geom_histogram(bins = input$user_bins)
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+Еще бывает:
+
+* `shiny::runGitHub()`
+* `shiny::runGist()`
+* `shiny::runUrl()`
+
+```{r, eval = FALSE}
+runGitHub("agricolamz/norm_chisq_app")
+```
+
+
+# UI
+
+```{r, eval = FALSE}
+ui <- ...
+```
+
+
+## Виды вопросов
+```{r}
+actionButton(inputId = "var", 
+             label = "Начинаем!")
+
+checkboxInput(inputId = "somevalue", 
+              label = "Some value", 
+              value = FALSE) # значение по умолчанию
+
+selectInput(inputId = "var", 
+            label = "Что у нас сегодня?", 
+            choices = c("Гречка" = "buckwheat",
+                         "Манка" = "semolina",
+                         "Чечевица" = "lentil"))
+
+radioButtons(inputId = "var", 
+             label = "Что у нас сегодня?", 
+             choices = c("Гречка" = "buckwheat",
+                         "Манка" = "semolina",
+                         "Чечевица" = "lentil"))
+
+checkboxGroupInput(inputId = "var", 
+                   label = "Что у нас сегодня?", 
+                   choices = c("Гречка" = "buckwheat",
+                               "Манка" = "semolina",
+                               "Чечевица" = "lentil"))
+
+numericInput(inputId = "var",
+             label = "Что у нас сегодня?",
+             min = 1,
+             max = 50,
+             value = 30)
+
+sliderInput(inputId = "var",
+            label = "Что у нас сегодня?",
+            min = 1,
+            max = 50,
+            value = 30)
+
+dateInput(inputId = "var",
+          label = "Что у нас сегодня?",
+          value = "2018-08-01")
+
+dateRangeInput(inputId = "var",
+               label = "Когда АнДан?",
+               start = "2018-07-22",
+               end = "2018-08-05")
+
+fileInput(inputId = "var",
+          label = "Файл гони!")
+
+passwordInput(inputId = "var",
+              label = "Проверь свой пароль на мощность:")
+
+textInput(inputId = "var",
+          label = "АН...",
+          value = "...ДАН")
+
+textAreaInput(inputId = "var",
+              label = "Место для анекдота про кальмара:",
+              value = "... а на вкус ...")
+```
+
+## Макет
+```{r}
+fluidRow(
+  column(width = 6, stringi::stri_rand_lipsum(1)), 
+  column(width = 5, stringi::stri_rand_lipsum(1)))
+
+fluidRow(
+  sidebarPanel(stringi::stri_rand_lipsum(1)),
+  mainPanel(stringi::stri_rand_lipsum(1)))
+tabsetPanel(
+  tabPanel("Un...",stringi::stri_rand_lipsum(1)),
+  tabPanel("...Done", stringi::stri_rand_lipsum(1))
+)
+```
+
+# Server
+
+```{r, eval = FALSE}
+server <- function(input, output) {
+  ...
+}
+```
+
+## Текст
+
+```{r}
+ui <- fluidPage(
+  textInput(inputId = "var",
+            label = NULL,
+            value = "%>%"),
+  textOutput("our_text")
+)
+
+server <- function(input, output) {
+  output$our_text <- renderText({
+    paste(input$var, "у тебя в штанах!")
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+## Таблица
+
+```{r}
+ui <- fluidPage(
+  selectInput(inputId = "var", 
+              label = "Выберите столбец:", 
+              choices = colnames(mtcars)),
+  tableOutput("our_table")
+)
+
+server <- function(input, output) {
+  output$our_table <- renderTable({
+    mtcars[,input$var]
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+## График
+```{r}
+ui <- fluidPage(
+  selectInput(inputId = "var", 
+              label = "Выберите столбец:", 
+              choices = colnames(mtcars)),
+  plotOutput("our_plot")
+)
+
+server <- function(input, output) {
+  output$our_plot <- renderPlot({
+    library(dplyr)
+    library(ggplot2)
+    mtcars %>% 
+      ggplot(aes(mpg, disp))+
+      geom_point()+
+      aes_string(color = input$var)
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```
+
